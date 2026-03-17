@@ -46,30 +46,8 @@ CV:
 Job Description:
 {job_description}"""
 
-    # Primary: OpenRouter
-    openrouter_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("cv-analyser-openrouter") or os.getenv("CV_ANALYSER_OPENROUTER")
-    if openrouter_key:
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {openrouter_key}"},
-                    json={
-                        "model": "meta-llama/llama-3.3-70b-instruct:free",
-                        "messages": [{"role": "user", "content": prompt}],
-                        "temperature": 0.3
-                    },
-                    timeout=30.0
-                )
-                if response.status_code == 200:
-                    data = response.json()
-                    content = data["choices"][0]["message"]["content"]
-                    return parse_llm_json(content)
-        except Exception as e:
-            print(f"OpenRouter failed: {e}")
-
-    # Fallback: Groq
-    groq_key = os.getenv("GROQ_API_KEY") or os.getenv("cv-analyser-groq") or os.getenv("CV_ANALYSER_GROQ")
+    # Primary: Groq (OpenRouter removed)
+    groq_key = os.getenv("GROQ_API_KEY") or os.getenv("cv-analyser-groq") or os.getenv("CV_ANALYSER_GROQ") or os.getenv("cv-analyzer-groq")
     if groq_key:
         try:
             async with httpx.AsyncClient() as client:
@@ -87,10 +65,13 @@ Job Description:
                     data = response.json()
                     content = data["choices"][0]["message"]["content"]
                     return parse_llm_json(content)
+                else:
+                    raise ValueError(f"Groq API returned status {response.status_code}: {response.text}")
         except Exception as e:
             print(f"Groq failed: {e}")
+            raise ValueError(f"Groq API call failed: {e}")
             
-    raise ValueError("All AI API providers failed or are unconfigured.")
+    raise ValueError("Groq API provider failed or is unconfigured. Please check environment variables.")
 
 def parse_llm_json(content: str) -> Dict[str, Any]:
     # Strip markdown code blocks if the LLM wrapped the JSON
