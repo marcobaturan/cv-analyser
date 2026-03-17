@@ -47,7 +47,7 @@ Job Description:
 {job_description}"""
 
     # Primary: OpenRouter
-    openrouter_key = os.getenv("OPENROUTER_API_KEY")
+    openrouter_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("cv-analyser-openrouter") or os.getenv("CV_ANALYSER_OPENROUTER")
     if openrouter_key:
         try:
             async with httpx.AsyncClient() as client:
@@ -69,7 +69,7 @@ Job Description:
             print(f"OpenRouter failed: {e}")
 
     # Fallback: Groq
-    groq_key = os.getenv("GROQ_API_KEY")
+    groq_key = os.getenv("GROQ_API_KEY") or os.getenv("cv-analyser-groq") or os.getenv("CV_ANALYSER_GROQ")
     if groq_key:
         try:
             async with httpx.AsyncClient() as client:
